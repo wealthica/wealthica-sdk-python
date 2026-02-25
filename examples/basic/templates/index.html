@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wealthica Python SDK Demo</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } }</script>
+</head>
+<body class="bg-white text-gray-900 min-h-screen flex flex-col font-sans antialiased">
+
+    <header class="sticky top-0 z-50 bg-black/90 backdrop-blur-xl border-b border-white/10">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 h-14 sm:h-20 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2 text-white text-base sm:text-lg font-semibold tracking-tight">
+                <img src="/static/favicon.svg" alt="Wealthica" class="h-6 w-6 sm:h-8 sm:w-8">
+                <span class="hidden sm:inline">Wealthica Investment API</span>
+                <span class="sm:hidden">Wealthica</span>
+            </a>
+            <nav class="flex items-center gap-3 sm:gap-5 text-xs sm:text-sm">
+                <a href="https://wealthica.com/investment-api/" class="text-gray-400 hover:text-white transition hidden sm:inline" target="_blank">Investment API</a>
+                <a href="https://wealthica.com/docs" class="text-gray-400 hover:text-white transition" target="_blank">Docs</a>
+                <a href="https://wealthica.com/docs/api" class="text-gray-400 hover:text-white transition hidden sm:inline" target="_blank">API Specs</a>
+                <a href="https://www.npmjs.com/package/wealthica-sdk-js" class="text-gray-400 hover:text-white transition" target="_blank">JS SDK</a>
+                <a href="https://pypi.org/project/wealthica/" class="text-gray-400 hover:text-white transition" target="_blank">Python SDK</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-5 py-4 sm:py-6 space-y-3">
+
+        <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <h3 class="text-sm font-semibold mb-1">Login Name</h3>
+            <p class="text-xs text-gray-500 mb-3">A unique identifier for the user in your application. Required for authentication, connecting accounts, and fetching user data.</p>
+            <input type="text" id="globalLoginName" placeholder="e.g. user_123"
+                   class="w-full max-w-xs bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-gray-400 placeholder-gray-400">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <h3 class="text-sm font-semibold mb-1">1. Get Providers</h3>
+                <p class="text-xs text-gray-500 mb-3">Fetch supported financial providers</p>
+                <a href="/api/providers" class="btn inline-block px-4 py-1.5 text-xs font-medium border border-gray-300 rounded-lg hover:bg-gray-100 transition">Get Providers</a>
+            </div>
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <h3 class="text-sm font-semibold mb-1">2. Get Team Info</h3>
+                <p class="text-xs text-gray-500 mb-3">Fetch your team/application info</p>
+                <a href="/api/team" class="btn inline-block px-4 py-1.5 text-xs font-medium border border-gray-300 rounded-lg hover:bg-gray-100 transition">Get Team Info</a>
+            </div>
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <h3 class="text-sm font-semibold mb-1">3. User Operations</h3>
+                <p class="text-xs text-gray-500 mb-3">Login as a user and fetch their data</p>
+                <div class="flex flex-wrap gap-1.5">
+                    <button onclick="getAuthToken()" class="px-4 py-1.5 text-xs font-medium border border-gray-300 rounded-lg hover:bg-gray-100 transition">Get Auth Token</button>
+                    <button onclick="getInstitutions()" class="px-4 py-1.5 text-xs font-medium border border-gray-300 rounded-lg hover:bg-gray-100 transition">Get Institutions</button>
+                </div>
+            </div>
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <h3 class="text-sm font-semibold mb-1">4. Connect Account</h3>
+                <p class="text-xs text-gray-500 mb-3">Open the Wealthica Connect widget</p>
+                <button onclick="openConnect()" class="px-4 py-1.5 text-xs font-medium bg-black text-white rounded-lg hover:bg-gray-800 transition">Connect Account</button>
+            </div>
+            <div class="sm:col-span-2 bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <h3 class="text-sm font-semibold mb-1">5. Institution Details</h3>
+                <p class="text-xs text-gray-500 mb-3">Fetch institution info, positions, and transactions by ID</p>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <input type="text" id="institutionId" placeholder="Institution ID"
+                           class="bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-gray-400 placeholder-gray-400 w-full sm:w-52">
+                    <button onclick="getInstitution()" class="px-4 py-1.5 text-xs font-medium border border-gray-300 rounded-lg hover:bg-gray-100 transition">Details</button>
+                    <button onclick="getPositions()" class="px-4 py-1.5 text-xs font-medium border border-gray-300 rounded-lg hover:bg-gray-100 transition">Positions</button>
+                    <button onclick="getTransactions()" class="px-4 py-1.5 text-xs font-medium border border-gray-300 rounded-lg hover:bg-gray-100 transition">Transactions</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Resizable response panel -->
+    <div id="responsePanel" class="fixed bottom-0 left-0 right-0 z-40 bg-black/90 backdrop-blur-xl border-t border-white/10 shadow-[0_-4px_24px_rgba(0,0,0,0.3)] flex flex-col" style="height: 36px;">
+        <!-- Drag handle -->
+        <div id="resizeHandle" class="h-1.5 cursor-ns-resize shrink-0 flex items-center justify-center group">
+            <div class="w-10 h-1 rounded-full bg-gray-600 group-hover:bg-gray-400 transition"></div>
+        </div>
+        <!-- Header -->
+        <div class="flex items-center justify-between px-4 sm:px-6 py-2 shrink-0 cursor-pointer select-none" onclick="togglePanel()">
+            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                <span id="panelArrow" class="text-gray-500 transition-transform duration-300 text-[10px]">&#9650;</span>
+                Response
+            </h3>
+            <button onclick="event.stopPropagation(); document.getElementById('response').textContent = 'Click a button above...'" class="text-xs text-gray-600 hover:text-gray-300 transition">Clear</button>
+        </div>
+        <!-- Body -->
+        <div class="overflow-auto flex-1 px-4 sm:px-6 py-2">
+            <pre id="response" class="text-xs text-gray-400 leading-relaxed font-mono">Click a button above...</pre>
+        </div>
+    </div>
+
+
+    <script src="https://unpkg.com/wealthica-sdk-js@0.0.19/dist/wealthica.js"></script>
+    <script>
+        const responseEl = document.getElementById('response');
+        const panel = document.getElementById('responsePanel');
+        const arrow = document.getElementById('panelArrow');
+        const mainEl = document.querySelector('main');
+        const handle = document.getElementById('resizeHandle');
+        let panelOpen = false;
+        let panelHeight = window.innerHeight * 0.5;
+        const COLLAPSED_HEIGHT = 36;
+
+        function syncPadding() {
+            mainEl.style.paddingBottom = (panelOpen ? panelHeight : COLLAPSED_HEIGHT) + 16 + 'px';
+        }
+        panel.style.height = COLLAPSED_HEIGHT + 'px';
+        arrow.style.transform = 'rotate(180deg)';
+        syncPadding();
+
+        function togglePanel() {
+            panelOpen = !panelOpen;
+            panel.style.height = panelOpen ? panelHeight + 'px' : COLLAPSED_HEIGHT + 'px';
+            arrow.style.transform = panelOpen ? '' : 'rotate(180deg)';
+            syncPadding();
+        }
+
+        // Drag to resize
+        handle.addEventListener('mousedown', startResize);
+        handle.addEventListener('touchstart', startResize, { passive: false });
+
+        function startResize(e) {
+            e.preventDefault();
+            const startY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+            const startH = panelHeight;
+            panel.style.transition = 'none';
+
+            function onMove(e) {
+                const y = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+                panelHeight = Math.max(100, Math.min(window.innerHeight - 80, startH + (startY - y)));
+                panel.style.height = panelHeight + 'px';
+                syncPadding();
+            }
+            function onEnd() {
+                panel.style.transition = '';
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onEnd);
+                document.removeEventListener('touchmove', onMove);
+                document.removeEventListener('touchend', onEnd);
+            }
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onEnd);
+            document.addEventListener('touchmove', onMove, { passive: false });
+            document.addEventListener('touchend', onEnd);
+        }
+
+        function getLoginName() {
+            const val = document.getElementById('globalLoginName').value.trim();
+            if (!val) {
+                alert('Please enter a Login Name at the top');
+                return null;
+            }
+            return val;
+        }
+
+        function showResponse(data) {
+            responseEl.textContent = JSON.stringify(data, null, 2);
+            if (!panelOpen) togglePanel();
+            responseEl.scrollTop = 0;
+        }
+
+        // 3. User Operations
+        async function getAuthToken() {
+            const loginName = getLoginName();
+            if (!loginName) return;
+            try {
+                const response = await fetch('/wealthica/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ loginName }),
+                });
+                showResponse(await response.json());
+            } catch (error) {
+                showResponse({ error: error.message });
+            }
+        }
+
+        async function getInstitutions() {
+            const loginName = getLoginName();
+            if (!loginName) return;
+            try {
+                const response = await fetch('/api/institutions?loginName=' + encodeURIComponent(loginName));
+                showResponse(await response.json());
+            } catch (error) {
+                showResponse({ error: error.message });
+            }
+        }
+
+        // 4. Connect an Investment Account
+        function openConnect() {
+            const loginName = getLoginName();
+            if (!loginName) return;
+
+            responseEl.textContent = 'Opening Wealthica Connect widget...';
+
+            const sdkConfig = {
+                clientId: '{{ client_id }}',
+                auth: {
+                    headers: { loginName: loginName },
+                },
+            };
+            if ('{{ api_url }}') sdkConfig.baseURL = '{{ api_url }}';
+            if ('{{ connect_url }}') sdkConfig.connectURL = '{{ connect_url }}';
+
+            const wealthicaSDK = Wealthica.init(sdkConfig);
+
+            const user = wealthicaSDK.login(loginName);
+
+            const connectOptions = {
+                lang: 'en',
+                theme: 'light',
+                providersPerLine: 2,
+            };
+            if ('{{ connect_type }}') connectOptions.connectionType = '{{ connect_type }}';
+
+            user.connect(connectOptions).onConnection(function(institution, data) {
+                showResponse({
+                    success: true,
+                    message: 'Institution connected successfully!',
+                    institution: institution,
+                    data: data,
+                });
+            }).onError(function(error) {
+                showResponse({
+                    success: false,
+                    error: error.message || error,
+                });
+            }).onEvent(function(name, data) {
+                console.log('Wealthica Connect event:', name, data);
+            });
+        }
+
+        // 5. Institution Details
+        function getInstitutionId() {
+            const val = document.getElementById('institutionId').value.trim();
+            if (!val) {
+                alert('Please enter an Institution ID');
+                return null;
+            }
+            return val;
+        }
+
+        async function getInstitution() {
+            const loginName = getLoginName();
+            const id = getInstitutionId();
+            if (!loginName || !id) return;
+            try {
+                const response = await fetch('/api/institutions/' + encodeURIComponent(id) + '?loginName=' + encodeURIComponent(loginName));
+                showResponse(await response.json());
+            } catch (error) {
+                showResponse({ error: error.message });
+            }
+        }
+
+        async function getPositions() {
+            const loginName = getLoginName();
+            const id = getInstitutionId();
+            if (!loginName || !id) return;
+            try {
+                const response = await fetch('/api/positions?loginName=' + encodeURIComponent(loginName) + '&institutions=' + encodeURIComponent(id));
+                showResponse(await response.json());
+            } catch (error) {
+                showResponse({ error: error.message });
+            }
+        }
+
+        async function getTransactions() {
+            const loginName = getLoginName();
+            const id = getInstitutionId();
+            if (!loginName || !id) return;
+            try {
+                const response = await fetch('/api/transactions?loginName=' + encodeURIComponent(loginName) + '&institutions=' + encodeURIComponent(id));
+                showResponse(await response.json());
+            } catch (error) {
+                showResponse({ error: error.message });
+            }
+        }
+
+        // 1 & 2. Link buttons
+        document.querySelectorAll('a.btn').forEach(link => {
+            link.addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    const response = await fetch(link.href);
+                    showResponse(await response.json());
+                } catch (error) {
+                    showResponse({ error: error.message });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

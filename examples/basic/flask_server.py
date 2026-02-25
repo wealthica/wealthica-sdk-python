@@ -18,7 +18,7 @@ Environment variables:
 """
 
 import os
-from flask import Flask, jsonify, request, render_template_string
+from flask import Flask, jsonify, request, render_template
 
 # Load environment variables from .env file if available
 try:
@@ -35,138 +35,20 @@ app = Flask(__name__)
 wealthica = Wealthica(
     client_id=os.getenv("WEALTHICA_CLIENT_ID", ""),
     secret=os.getenv("WEALTHICA_CLIENT_SECRET", ""),
+    base_url=os.getenv("WEALTHICA_API_URL") or None,
+    connect_url=os.getenv("WEALTHICA_CONNECT_URL") or None,
 )
-
-# Simple HTML template for the demo
-HTML_TEMPLATE = """
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Wealthica Python SDK Demo</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            background: #f5f5f5;
-        }
-        .card {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        h1 { color: #333; }
-        h2 { color: #666; margin-top: 0; }
-        pre {
-            background: #f0f0f0;
-            padding: 15px;
-            border-radius: 4px;
-            overflow-x: auto;
-            color: #333;
-        }
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background: #4CAF50;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            margin: 5px;
-            border: none;
-            cursor: pointer;
-        }
-        .btn:hover { background: #45a049; }
-        .btn-blue { background: #2196F3; }
-        .btn-blue:hover { background: #1976D2; }
-        input {
-            padding: 10px;
-            margin: 5px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            width: 200px;
-        }
-    </style>
-</head>
-<body>
-    <h1>Wealthica Python SDK Demo</h1>
-
-    <div class="card">
-        <h2>1. Get Providers</h2>
-        <p>Fetch the list of supported financial providers.</p>
-        <a href="/api/providers" class="btn">Get Providers</a>
-    </div>
-
-    <div class="card">
-        <h2>2. Get Team Info</h2>
-        <p>Fetch your Wealthica team/application information.</p>
-        <a href="/api/team" class="btn btn-blue">Get Team Info</a>
-    </div>
-
-    <div class="card">
-        <h2>3. User Operations</h2>
-        <p>Login as a user and fetch their data.</p>
-        <form action="/api/auth/token" method="POST" id="tokenForm">
-            <input type="text" name="user_id" placeholder="Enter User ID" required>
-            <button type="submit" class="btn">Get Auth Token</button>
-        </form>
-        <br>
-        <form action="/api/institutions" method="GET" id="institutionsForm">
-            <input type="text" name="user_id" placeholder="Enter User ID" required>
-            <button type="submit" class="btn btn-blue">Get Institutions</button>
-        </form>
-    </div>
-
-    <div class="card">
-        <h2>API Response</h2>
-        <pre id="response">Click a button above to see the API response...</pre>
-    </div>
-
-    <script>
-        document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const formData = new FormData(form);
-                const method = form.method.toUpperCase();
-                const url = form.action + (method === 'GET' ? '?' + new URLSearchParams(formData) : '');
-
-                try {
-                    const response = await fetch(url, {
-                        method: method,
-                        body: method === 'POST' ? formData : undefined
-                    });
-                    const data = await response.json();
-                    document.getElementById('response').textContent = JSON.stringify(data, null, 2);
-                } catch (error) {
-                    document.getElementById('response').textContent = 'Error: ' + error.message;
-                }
-            });
-        });
-
-        document.querySelectorAll('a.btn').forEach(link => {
-            link.addEventListener('click', async (e) => {
-                e.preventDefault();
-                try {
-                    const response = await fetch(link.href);
-                    const data = await response.json();
-                    document.getElementById('response').textContent = JSON.stringify(data, null, 2);
-                } catch (error) {
-                    document.getElementById('response').textContent = 'Error: ' + error.message;
-                }
-            });
-        });
-    </script>
-</body>
-</html>
-"""
-
 
 @app.route("/")
 def index():
     """Serve the demo page."""
-    return render_template_string(HTML_TEMPLATE)
+    return render_template(
+        "index.html",
+        client_id=os.getenv("WEALTHICA_CLIENT_ID", ""),
+        api_url=os.getenv("WEALTHICA_API_URL", ""),
+        connect_url=os.getenv("WEALTHICA_CONNECT_URL", ""),
+        connect_type=os.getenv("WEALTHICA_CONNECT_TYPE", ""),
+    )
 
 
 @app.route("/api/providers")
@@ -203,46 +85,46 @@ def get_team():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@app.route("/api/auth/token", methods=["POST"])
-def get_auth_token():
+@app.route("/wealthica/auth", methods=["POST"])
+def wealthica_auth():
     """
-    Generate an auth token for a user.
+    Auth endpoint used by both the frontend and the Wealthica JS SDK.
 
-    This endpoint would be called by your frontend to get a token
-    for Wealthica Connect.
+    Accepts loginName from JSON body, form data, query params, or headers.
+    Returns { token } for the given user.
     """
-    json_data = request.get_json(silent=True) or {}
-    user_id = request.form.get("user_id") or json_data.get("user_id")
+    login_name = (
+        (request.get_json(silent=True) or {}).get("loginName")
+        or request.form.get("loginName")
+        or request.args.get("loginName")
+        or request.headers.get("loginName")
+    )
 
-    if not user_id:
-        return jsonify({"success": False, "error": "user_id is required"}), 400
+    if not login_name:
+        return jsonify({"error": "loginName is required"}), 400
 
     try:
-        user = wealthica.login(user_id)
+        user = wealthica.login(login_name)
         token = user.get_token()
-        return jsonify({
-            "success": True,
-            "token": token,
-            "user_id": user_id
-        })
+        return jsonify({"token": token, "loginName": login_name})
     except WealthicaError as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/institutions")
 def get_institutions():
     """Get institutions for a user."""
-    user_id = request.args.get("user_id")
+    login_name = request.args.get("loginName")
 
-    if not user_id:
-        return jsonify({"success": False, "error": "user_id is required"}), 400
+    if not login_name:
+        return jsonify({"success": False, "error": "loginName is required"}), 400
 
     try:
-        user = wealthica.login(user_id)
+        user = wealthica.login(login_name)
         institutions = user.institutions.get_list()
         return jsonify({
             "success": True,
-            "user_id": user_id,
+            "loginName": login_name,
             "count": len(institutions),
             "institutions": institutions
         })
@@ -253,13 +135,13 @@ def get_institutions():
 @app.route("/api/institutions/<institution_id>")
 def get_institution(institution_id):
     """Get a specific institution."""
-    user_id = request.args.get("user_id")
+    login_name = request.args.get("loginName")
 
-    if not user_id:
-        return jsonify({"success": False, "error": "user_id is required"}), 400
+    if not login_name:
+        return jsonify({"success": False, "error": "loginName is required"}), 400
 
     try:
-        user = wealthica.login(user_id)
+        user = wealthica.login(login_name)
         institution = user.institutions.get_one(institution_id)
         return jsonify({"success": True, "institution": institution})
     except WealthicaError as e:
@@ -270,13 +152,13 @@ def get_institution(institution_id):
 def sync_institution(institution_id):
     """Trigger a sync for an institution."""
     json_data = request.get_json(silent=True) or {}
-    user_id = request.form.get("user_id") or json_data.get("user_id")
+    login_name = request.form.get("loginName") or json_data.get("loginName")
 
-    if not user_id:
-        return jsonify({"success": False, "error": "user_id is required"}), 400
+    if not login_name:
+        return jsonify({"success": False, "error": "loginName is required"}), 400
 
     try:
-        user = wealthica.login(user_id)
+        user = wealthica.login(login_name)
         institution = user.institutions.sync(institution_id)
         return jsonify({"success": True, "institution": institution})
     except WealthicaError as e:
@@ -286,14 +168,14 @@ def sync_institution(institution_id):
 @app.route("/api/positions")
 def get_positions():
     """Get positions for a user."""
-    user_id = request.args.get("user_id")
+    login_name = request.args.get("loginName")
     institutions = request.args.get("institutions", "").split(",") if request.args.get("institutions") else None
 
-    if not user_id:
-        return jsonify({"success": False, "error": "user_id is required"}), 400
+    if not login_name:
+        return jsonify({"success": False, "error": "loginName is required"}), 400
 
     try:
-        user = wealthica.login(user_id)
+        user = wealthica.login(login_name)
         positions = user.positions.get_list(institutions=institutions)
         return jsonify({
             "success": True,
@@ -307,17 +189,17 @@ def get_positions():
 @app.route("/api/transactions")
 def get_transactions():
     """Get transactions for a user."""
-    user_id = request.args.get("user_id")
+    login_name = request.args.get("loginName")
     institutions = request.args.get("institutions", "").split(",") if request.args.get("institutions") else None
     from_date = request.args.get("from")
     to_date = request.args.get("to")
     limit = request.args.get("limit", type=int)
 
-    if not user_id:
-        return jsonify({"success": False, "error": "user_id is required"}), 400
+    if not login_name:
+        return jsonify({"success": False, "error": "loginName is required"}), 400
 
     try:
-        user = wealthica.login(user_id)
+        user = wealthica.login(login_name)
         transactions = user.transactions.get_list(
             institutions=institutions,
             from_date=from_date,
@@ -336,16 +218,16 @@ def get_transactions():
 @app.route("/api/history")
 def get_history():
     """Get balance history for a user."""
-    user_id = request.args.get("user_id")
+    login_name = request.args.get("loginName")
     institutions = request.args.get("institutions", "").split(",") if request.args.get("institutions") else None
     from_date = request.args.get("from")
     to_date = request.args.get("to")
 
-    if not user_id:
-        return jsonify({"success": False, "error": "user_id is required"}), 400
+    if not login_name:
+        return jsonify({"success": False, "error": "loginName is required"}), 400
 
     try:
-        user = wealthica.login(user_id)
+        user = wealthica.login(login_name)
         history = user.history.get_list(
             institutions=institutions,
             from_date=from_date,

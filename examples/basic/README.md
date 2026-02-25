@@ -50,11 +50,13 @@ Then open http://localhost:3001 in your browser.
 
 ## Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `WEALTHICA_CLIENT_ID` | Your Wealthica client ID | Yes |
-| `WEALTHICA_CLIENT_SECRET` | Your Wealthica client secret | Yes |
-| `WEALTHICA_TEST_USER_ID` | User ID for testing (default: "test_user_123") | No |
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+| `WEALTHICA_CLIENT_ID` | Your Wealthica client ID | Yes | |
+| `WEALTHICA_CLIENT_SECRET` | Your Wealthica client secret | Yes | |
+| `WEALTHICA_API_URL` | Custom API base URL | No | `https://api.wealthica.com/v1` |
+| `WEALTHICA_CONNECT_URL` | Custom Connect widget URL | No | `https://connect.wealthica.com` |
+| `WEALTHICA_CONNECT_TYPE` | Connection type (`POST` or `GET`) | No | `POST` |
 
 ## Connecting User Institutions
 
