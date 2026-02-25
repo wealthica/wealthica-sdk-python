@@ -1,0 +1,3 @@
+wealthica
+python-dotenv
+flask

@@ -22,6 +22,13 @@ import os
 import sys
 from datetime import datetime, timedelta
 
+# Load environment variables from .env file if available
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
+except ImportError:
+    pass
+
 from wealthica import (
     Wealthica,
     WealthicaError,
@@ -67,8 +74,8 @@ def main() -> None:
             # Show first 5 providers
             print("Sample providers:")
             for provider in providers[:5]:
-                print(f"  - {provider['display_name']} ({provider['name']})")
-                print(f"    Auth: {provider.get('auth_type', 'N/A')}, Beta: {provider.get('is_beta', False)}")
+                print(f"  - {provider['name']} ({provider['type']})")
+                print(f"    Class: {provider.get('class', 'N/A')}, URL: {provider.get('url', 'N/A')}")
 
             if len(providers) > 5:
                 print(f"\n  ... and {len(providers) - 5} more providers")
