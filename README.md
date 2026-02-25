@@ -1,4 +1,4 @@
-# Wealthica Python SDK
+# Wealthica Investment API Python SDK
 
 Official Python SDK for the [Wealthica](https://wealthica.com) Investment API.
 
