@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wealthica"
-version = "1.0.0"
+version = "1.0.1"
 description = "Official Wealthica Python SDK for the Investment Data API"
 readme = "README.md"
 license = "MIT"

@@ -15,12 +15,20 @@ Before running:
 Usage:
     export WEALTHICA_CLIENT_ID="your_client_id"
     export WEALTHICA_CLIENT_SECRET="your_secret"
-    python basic.py
+    python basic.py --loginName user_123
 """
 
+import argparse
 import os
 import sys
 from datetime import datetime, timedelta
+
+# Load environment variables from .env file if available
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
+except ImportError:
+    pass
 
 from wealthica import (
     Wealthica,
@@ -40,6 +48,10 @@ def print_separator(title: str = "") -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Wealthica Python SDK basic example")
+    parser.add_argument("--loginName", required=True, help="User login name")
+    args = parser.parse_args()
+
     # Get credentials from environment variables
     client_id = os.getenv("WEALTHICA_CLIENT_ID")
     client_secret = os.getenv("WEALTHICA_CLIENT_SECRET")
@@ -54,7 +66,12 @@ def main() -> None:
     # Initialize the Wealthica client
     print_separator("Initializing Wealthica Client")
 
-    with Wealthica(client_id=client_id, secret=client_secret) as wealthica:
+    with Wealthica(
+        client_id=client_id,
+        secret=client_secret,
+        base_url=os.getenv("WEALTHICA_API_URL") or None,
+        connect_url=os.getenv("WEALTHICA_CONNECT_URL") or None,
+    ) as wealthica:
         # ============================================================
         # 1. Get Provider Information (No Authentication Required)
         # ============================================================
@@ -67,8 +84,8 @@ def main() -> None:
             # Show first 5 providers
             print("Sample providers:")
             for provider in providers[:5]:
-                print(f"  - {provider['display_name']} ({provider['name']})")
-                print(f"    Auth: {provider.get('auth_type', 'N/A')}, Beta: {provider.get('is_beta', False)}")
+                print(f"  - {provider['name']} ({provider['type']})")
+                print(f"    Class: {provider.get('class', 'N/A')}, URL: {provider.get('url', 'N/A')}")
 
             if len(providers) > 5:
                 print(f"\n  ... and {len(providers) - 5} more providers")
@@ -92,12 +109,9 @@ def main() -> None:
         # ============================================================
         print_separator("3. User Operations")
 
-        # You would use your own user identifier here
-        # This could be a user ID from your database
-        user_id = os.getenv("WEALTHICA_TEST_USER_ID", "test_user_123")
-
-        print(f"Logging in as user: {user_id}")
-        user = wealthica.login(user_id)
+        login_name = args.loginName
+        print(f"Logging in as user: {login_name}")
+        user = wealthica.login(login_name)
 
         # ============================================================
         # 3a. Get User Institutions
@@ -111,15 +125,21 @@ def main() -> None:
                 print(f"Found {len(institutions)} institution(s)\n")
 
                 for inst in institutions:
-                    print(f"Institution: {inst['id']}")
-                    print(f"  Provider: {inst['provider']['display_name']}")
-                    print(f"  Created: {inst.get('created_at', 'unknown')}")
+                    inst_id = inst.get('_id') or inst.get('id') or 'unknown'
+                    print(f"Institution: {inst_id}")
+                    provider = inst.get('provider') or inst.get('type') or 'unknown'
+                    if isinstance(provider, dict):
+                        print(f"  Provider: {provider.get('display_name', provider.get('name', 'unknown'))}")
+                    else:
+                        print(f"  Provider: {provider}")
+                    sync_date = inst.get('sync_date') or 'unknown'
+                    print(f"  Last Sync: {sync_date}")
 
                     balances = inst.get('balances', [])
                     if balances:
                         print(f"  Balances ({len(balances)}):")
                         for balance in balances[:3]:
-                            print(f"    - {balance['ticker']}: {balance['amount']}")
+                            print(f"    - {balance.get('ticker', '?')}: {balance.get('amount', 0)}")
                         if len(balances) > 3:
                             print(f"    ... and {len(balances) - 3} more")
                     print()
@@ -128,7 +148,7 @@ def main() -> None:
                 # 3b. Get Positions
                 # ============================================================
                 print("--- Positions ---")
-                first_institution_id = institutions[0]['id']
+                first_institution_id = institutions[0].get('_id') or institutions[0].get('id')
 
                 try:
                     positions = user.positions.get_list(

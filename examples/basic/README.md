@@ -4,19 +4,18 @@ This directory contains example scripts demonstrating how to use the Wealthica P
 
 ## Prerequisites
 
-1. Install the Wealthica SDK:
+1. Install dependencies:
 
 ```bash
-pip install wealthica
+pip install -r requirements.txt
 ```
 
 2. Get your API credentials from [Wealthica](https://wealthica.com)
 
-3. Set up environment variables:
+3. Copy `.env.example` to `.env` and fill in your credentials:
 
 ```bash
-export WEALTHICA_CLIENT_ID="your_client_id"
-export WEALTHICA_CLIENT_SECRET="your_secret"
+cp .env.example .env
 ```
 
 ## Examples
@@ -44,10 +43,6 @@ A web server demonstrating how to integrate Wealthica into a backend application
 - Interactive web interface for testing
 
 ```bash
-# Install Flask
-pip install flask python-dotenv
-
-# Run the server
 python flask_server.py
 ```
 
@@ -55,11 +50,13 @@ Then open http://localhost:3001 in your browser.
 
 ## Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `WEALTHICA_CLIENT_ID` | Your Wealthica client ID | Yes |
-| `WEALTHICA_CLIENT_SECRET` | Your Wealthica client secret | Yes |
-| `WEALTHICA_TEST_USER_ID` | User ID for testing (default: "test_user_123") | No |
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+| `WEALTHICA_CLIENT_ID` | Your Wealthica client ID | Yes | |
+| `WEALTHICA_CLIENT_SECRET` | Your Wealthica client secret | Yes | |
+| `WEALTHICA_API_URL` | Custom API base URL | No | `https://api.wealthica.com/v1` |
+| `WEALTHICA_CONNECT_URL` | Custom Connect widget URL | No | `https://connect.wealthica.com` |
+| `WEALTHICA_CONNECT_TYPE` | Connection type (`POST` or `GET`) | No | `POST` |
 
 ## Connecting User Institutions
 

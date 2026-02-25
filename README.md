@@ -1,5 +1,9 @@
 # Wealthica Investment API Python SDK
 
+[![PyPI version](https://img.shields.io/pypi/v/wealthica.svg)](https://pypi.org/project/wealthica/)
+[![Python](https://img.shields.io/pypi/pyversions/wealthica.svg)](https://pypi.org/project/wealthica/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Official Python SDK for the [Wealthica](https://wealthica.com) Investment API.
 
 ## What is Wealthica?
@@ -17,6 +21,10 @@ For our updated list of integrations, check out our list of [Wealthica Integrati
 - Support for 150+ Canadian financial institutions
 - Context manager support for automatic cleanup
 - Typed exception classes for granular error handling
+
+## Requirements
+
+- Python >= 3.8
 
 ## Installation
 
@@ -349,14 +357,23 @@ To get a PyPI API token:
 2. Create an API token with "Upload packages" scope
 3. Use `__token__` as username and the token as password
 
-## Documentation
+## Examples
+
+See the [examples](examples/basic) directory for complete working examples including a CLI script and a Flask web server.
+
+## Documentation & Links
 
 - [Wealthica API Documentation](https://wealthica.com/docs)
 - [JavaScript SDK](https://github.com/wealthica/wealthica-sdk-js)
+- [Python SDK on PyPI](https://pypi.org/project/wealthica/)
+- [GitHub Repository](https://github.com/wealthica/wealthica-sdk-python)
+- [Integration Status](https://wealthica.com/status/)
+- [Changelog](CHANGELOG.md)
 
 ## Support
 
-- Email: [hello@wealthica.com](mailto:hello@wealthica.com)
+- Sales & API keys: [sales@wealthica.com](mailto:sales@wealthica.com)
+- General inquiries: [hello@wealthica.com](mailto:hello@wealthica.com)
 - Documentation: [https://wealthica.com/docs](https://wealthica.com/docs)
 
 ## License
